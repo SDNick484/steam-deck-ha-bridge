@@ -1,0 +1,112 @@
+# Home Assistant automations for the Steam Deck bridge.
+#
+# Paste into automations.yaml (or create each one in the UI and switch it to "Edit in YAML").
+# Replace these two placeholders first:
+#   light.living_room                -> the lights you want dimmed
+#   notify.mobile_app_your_phone     -> your phone's notify service (Developer tools > Actions, search "notify")
+#
+# The entity ids below assume the device name "Steam Deck" (the installer's default). If you chose
+# another name, Home Assistant derives the ids from it, e.g. "Sam's Deck" -> sensor.sam_s_deck_battery.
+
+# 1. Game night lighting: dim the room when a game starts while the Deck is docked to the TV,
+#    and put the lights back the way they were a minute after the game closes.
+- id: steam_deck_game_night_lights
+  alias: "Steam Deck: dim lights when a docked game starts"
+  mode: restart
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.steam_deck_playing
+      from: "off"
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.steam_deck_docked
+      state: "on"
+    - condition: sun
+      after: sunset
+      after_offset: "-00:30:00"
+  actions:
+    - action: scene.create
+      data:
+        scene_id: before_steam_deck
+        snapshot_entities:
+          - light.living_room
+    - action: light.turn_on
+      target:
+        entity_id: light.living_room
+      data:
+        brightness_pct: 20
+        transition: 4
+    - wait_for_trigger:
+        - trigger: state
+          entity_id: binary_sensor.steam_deck_playing
+          to: "off"
+          for: "00:01:00"
+      timeout: "06:00:00"
+    - action: scene.turn_on
+      target:
+        entity_id: scene.before_steam_deck
+      data:
+        transition: 4
+
+# 2. Low battery warning, with what's running and how long it has left.
+- id: steam_deck_low_battery
+  alias: "Steam Deck: low battery warning"
+  mode: single
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.steam_deck_battery
+      below: 15
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.steam_deck_plugged_in
+      state: "off"
+  actions:
+    - action: notify.mobile_app_your_phone
+      data:
+        title: "Steam Deck at {{ states('sensor.steam_deck_battery') }}%"
+        message: >-
+          {% set game = states('sensor.steam_deck_game') %}
+          {% set left = states('sensor.steam_deck_time_remaining') %}
+          {{ 'Playing ' ~ game ~ '. ' if game not in ['Idle', 'unknown', 'unavailable'] else '' }}
+          {{ 'About ' ~ left ~ ' minutes left.' if left | is_number else 'Plug it in soon.' }}
+
+# 3. Long session nudge: a notification after two hours of continuous play.
+- id: steam_deck_long_session
+  alias: "Steam Deck: two-hour session nudge"
+  mode: single
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.steam_deck_playing
+      to: "on"
+      for: "02:00:00"
+  actions:
+    - action: notify.mobile_app_your_phone
+      data:
+        title: "Two hours of {{ states('sensor.steam_deck_game') }}"
+        message: "Started at {{ as_timestamp(states('sensor.steam_deck_game_started')) | timestamp_custom('%-I:%M %p') }}."
+
+# 4. Charging finished: let you know when it's full so it can come off the dock.
+- id: steam_deck_charged
+  alias: "Steam Deck: fully charged"
+  mode: single
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.steam_deck_battery
+      above: 99
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.steam_deck_plugged_in
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.steam_deck_playing
+      state: "off"
+    # The Deck goes "unavailable" while it sleeps. Without this guard, waking it on the
+    # charger at 100% would re-fire the alert every time you pick it up.
+    - condition: template
+      value_template: "{{ trigger.from_state is not none and trigger.from_state.state not in ['unavailable', 'unknown'] }}"
+  actions:
+    - action: notify.mobile_app_your_phone
+      data:
+        title: "Steam Deck is charged"
+        message: "Battery health is {{ states('sensor.steam_deck_battery_health') }}%."

@@ -101,6 +101,27 @@ heartbeat_seconds = 60
 
 This project isn't affiliated with Valve or Home Assistant.
 
+## State topic
+
+The Deck's state is published as one retained JSON object on `deck-ha-bridge/<node>/state`, with `online`/`offline` on `deck-ha-bridge/<node>/availability`. Other programs can subscribe to it. Every field, its type and when it is `null` are listed in [docs/state-schema.md](docs/state-schema.md).
+
+## Tests
+
+The tests use only the standard library's `unittest` and need no network and no Deck. They run the MQTT client against a fake broker on a loopback port, the readers against fake `/sys`, `/proc` and Steam trees (through `DECK_SYSFS_ROOT`, `DECK_PROC_ROOT` and `DECK_STEAM_ROOT`), the bridge logic, the state-schema contract, and `install.sh` with `systemctl` stubbed. `shellcheck` must be on your `PATH` (`pip install shellcheck-py` works).
+
+```bash
+python3 -m unittest discover -s tests -t . -v     # every test; a skipped test fails CI
+sh .github/scripts/lint.sh                        # shellcheck and py_compile
+python3 .github/scripts/privacy_scan.py           # no IPs, SteamIDs or personal emails in the repo
+python3 tests/regen_fixtures.py                   # rewrite tests/fixtures/ after an intended change
+```
+
+The fixtures under `tests/fixtures/` are produced by the code, and a test compares them with a fresh run, so a changed state field or discovery payload fails until the change is reviewed and the fixtures are regenerated.
+
+**Known bug, recorded as an expected failure:** `GameNames.load_shortcuts()` pairs an `appid` with the next `AppName` it reads, so a `shortcuts.vdf` entry with no `appid` key would take the next entry's id. The test (`test_an_entry_without_an_appid_does_not_steal_the_next_entrys_id`) is marked `expectedFailure`; fixing the bug makes it an unexpected success, which fails the run until the marker is removed.
+
+GitHub Actions runs the tests on Python 3.11 to 3.14, the lint, and the privacy scan on every push and pull request, and weekly.
+
 ## License
 
 MIT

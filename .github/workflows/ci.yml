@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 14 * * 1"  # Mondays 14:41 UTC: the same checks against fresh runner images and Python releases
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # MQTT client against a fake broker, the readers against fake /sys, /proc and Steam trees, the bridge logic,
+  # the state-schema contract, install.sh with systemctl stubbed, and the privacy scanner's own tests, on every
+  # supported Python. Nothing here may be skipped: any "skipped" in the output fails the job. (A known bug is
+  # recorded as an "expected failure", which is not a skip and is listed in the README.)
+  tests:
+    name: Unit tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: shellcheck --version
+      - name: Run the tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -v -s tests -t . 2>&1 | tee unittest.log
+      - name: Fail if any test was skipped
+        shell: bash
+        run: |
+          if grep -Ei '\.\.\. skipped|skipped=' unittest.log; then
+            echo "::error::a test was skipped; CI must run every test"
+            exit 1
+          fi
+
+  lint:
+    name: Lint (shellcheck, py_compile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: shellcheck --version
+      - run: sh .github/scripts/lint.sh
+
+  # No personal details in a public repo. Prints where and which rule, never the matched value.
+  privacy-scan:
+    name: Privacy scan (SteamIDs, IPs, emails, denylist)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Scan files and commits
+        env:
+          # Newline-separated terms (hostnames, domain, names, device names). Not available to pull requests from
+          # forks or to Dependabot; the scan then runs its pattern checks only and says so.
+          PRIVACY_DENYLIST: ${{ secrets.PRIVACY_DENYLIST }}
+          HAVE_DENYLIST: ${{ secrets.PRIVACY_DENYLIST != '' }}
+        run: |
+          flag=""
+          if [ "$HAVE_DENYLIST" = true ]; then
+            flag="--require-denylist"
+          else
+            echo "::warning::PRIVACY_DENYLIST is not available to this run; only the pattern checks ran"
+          fi
+          python .github/scripts/privacy_scan.py $flag

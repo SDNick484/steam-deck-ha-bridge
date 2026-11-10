@@ -367,6 +367,7 @@ class Wire(DeckTestCase):
         self.b.wait_publishes(2, topic=STATE_TOPIC)
         self.assertTrue(self.b.wait_for(lambda: len(self.configs()) == 26))
         # "online" follows the connect and again each discovery round (connect round + birth round)
+        self.assertTrue(self.b.wait_for(lambda: len(self.b.publishes(AVAIL_TOPIC)) >= 3))
         self.assertEqual(len(self.b.publishes(AVAIL_TOPIC)), 3)
         self.assertTrue(all(p.text == "online" for p in self.b.publishes(AVAIL_TOPIC)))
 
@@ -399,9 +400,10 @@ class Wire(DeckTestCase):
         self.b.wait_publishes(1, topic=STATE_TOPIC)
         self.stop()
         self.assertFalse(self.thread.is_alive())
+        # The broker's thread records packets after the bridge has returned, so wait for them.
+        self.assertTrue(self.b.wait_for(lambda: self.b.of_type(fb.DISCONNECT)))
         last = self.b.publishes(AVAIL_TOPIC)[-1]
         self.assertEqual((last.text, last.info["retain"]), ("offline", True))
-        self.assertTrue(self.b.wait_for(lambda: self.b.of_type(fb.DISCONNECT)))
         self.assertIn("stopped", self.logs)
 
     def test_a_dropped_connection_is_re_established_from_scratch(self):

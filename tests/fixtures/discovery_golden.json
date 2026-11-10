@@ -1,0 +1,247 @@
+{
+  "homeassistant/sensor/steamdeck/battery/config": {
+    "unique_id": "steamdeck_battery",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Battery",
+    "device_class": "battery",
+    "unit_of_measurement": "%",
+    "state_class": "measurement",
+    "value_template": "{{ value_json.battery if value_json.battery is not none else 'None' }}"
+  },
+  "homeassistant/sensor/steamdeck/battery_power/config": {
+    "unique_id": "steamdeck_battery_power",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Battery power",
+    "device_class": "power",
+    "unit_of_measurement": "W",
+    "state_class": "measurement",
+    "value_template": "{{ value_json.power_w if value_json.power_w is not none else 'None' }}"
+  },
+  "homeassistant/sensor/steamdeck/time_remaining/config": {
+    "unique_id": "steamdeck_time_remaining",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Time remaining",
+    "device_class": "duration",
+    "unit_of_measurement": "min",
+    "icon": "mdi:timer-sand",
+    "value_template": "{{ value_json.time_left_min if value_json.time_left_min is not none else 'None' }}"
+  },
+  "homeassistant/sensor/steamdeck/battery_health/config": {
+    "unique_id": "steamdeck_battery_health",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Battery health",
+    "unit_of_measurement": "%",
+    "icon": "mdi:battery-heart-variant",
+    "entity_category": "diagnostic",
+    "value_template": "{{ value_json.health if value_json.health is not none else 'None' }}"
+  },
+  "homeassistant/binary_sensor/steamdeck/charging/config": {
+    "unique_id": "steamdeck_charging",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Charging",
+    "device_class": "battery_charging",
+    "value_template": "{{ value_json.charging }}",
+    "payload_on": "ON",
+    "payload_off": "OFF"
+  },
+  "homeassistant/binary_sensor/steamdeck/plugged_in/config": {
+    "unique_id": "steamdeck_plugged_in",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Plugged in",
+    "device_class": "plug",
+    "value_template": "{{ value_json.plugged }}",
+    "payload_on": "ON",
+    "payload_off": "OFF"
+  },
+  "homeassistant/binary_sensor/steamdeck/docked/config": {
+    "unique_id": "steamdeck_docked",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Docked",
+    "icon": "mdi:monitor",
+    "value_template": "{{ value_json.docked }}",
+    "payload_on": "ON",
+    "payload_off": "OFF"
+  },
+  "homeassistant/binary_sensor/steamdeck/playing/config": {
+    "unique_id": "steamdeck_playing",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Playing",
+    "device_class": "running",
+    "value_template": "{{ value_json.playing }}",
+    "payload_on": "ON",
+    "payload_off": "OFF"
+  },
+  "homeassistant/sensor/steamdeck/game/config": {
+    "unique_id": "steamdeck_game",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Game",
+    "icon": "mdi:gamepad-variant",
+    "value_template": "{{ value_json.game }}",
+    "json_attributes_template": "{{ {'appid': value_json.appid, 'store_url': value_json.store_url} | tojson }}",
+    "json_attributes_topic": "deck-ha-bridge/steamdeck/state"
+  },
+  "homeassistant/sensor/steamdeck/game_started/config": {
+    "unique_id": "steamdeck_game_started",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Game started",
+    "device_class": "timestamp",
+    "value_template": "{{ value_json.game_started if value_json.game_started is not none else 'None' }}"
+  },
+  "homeassistant/sensor/steamdeck/mode/config": {
+    "unique_id": "steamdeck_mode",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Mode",
+    "icon": "mdi:steam",
+    "value_template": "{{ value_json.mode }}"
+  },
+  "homeassistant/sensor/steamdeck/apu_temperature/config": {
+    "unique_id": "steamdeck_apu_temperature",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "APU temperature",
+    "device_class": "temperature",
+    "unit_of_measurement": "°C",
+    "state_class": "measurement",
+    "entity_category": "diagnostic",
+    "value_template": "{{ value_json.apu_temp if value_json.apu_temp is not none else 'None' }}"
+  },
+  "homeassistant/sensor/steamdeck/fan_speed/config": {
+    "unique_id": "steamdeck_fan_speed",
+    "state_topic": "deck-ha-bridge/steamdeck/state",
+    "availability_topic": "deck-ha-bridge/steamdeck/availability",
+    "device": {
+      "identifiers": [
+        "deck-ha-bridge-steamdeck"
+      ],
+      "name": "Steam Deck",
+      "manufacturer": "Valve",
+      "model": "Steam Deck",
+      "sw_version": "deck-ha-bridge 1.0.0"
+    },
+    "name": "Fan speed",
+    "unit_of_measurement": "rpm",
+    "icon": "mdi:fan",
+    "state_class": "measurement",
+    "entity_category": "diagnostic",
+    "value_template": "{{ value_json.fan_rpm if value_json.fan_rpm is not none else 'None' }}"
+  }
+}
